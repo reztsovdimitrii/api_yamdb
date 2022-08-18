@@ -1,4 +1,3 @@
-from unicodedata import name
 from django.db import models
 
 
@@ -12,15 +11,17 @@ class Genres(models.Model):
 
 
 class Titles(models.Model):
-    category = 
-    genre = 
-    name = 
-    year = 
+    category = models.ForeignKey(
+        Categories, on_delete=models.CASCADE,
+        related_name='category', blank=True, null=True)
+    genre = models.CharField(max_length=256)
+    name = models.CharField(max_length=256)
+    year = models.IntegerField()
     description = models.TextField()
 
 
 class Review(models.Model):
-
+    slug = models.SlugField(max_length=50)
 
 class Comments(models.Model):
-
+    slug = models.SlugField(max_length=50)
