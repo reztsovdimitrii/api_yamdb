@@ -6,10 +6,10 @@ from .views import (CategoryViewSet, GenreViewSet,
 
 router = DefaultRouter()
 
-router.register('categories', CategoryViewSet, basename='category')
-router.register('genres', GenreViewSet, basename='genre')
-router.register('titles', TitleViewSet, basename='title')
-router.register(r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='review')
+router.register(r'categories', CategoryViewSet, basename='categories')
+router.register('genres', GenreViewSet, basename='genres')
+router.register('titles', TitleViewSet, basename='titles')
+router.register(r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='reviews')
 router.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet, basename='comment'
@@ -19,13 +19,14 @@ urlpatterns = [
     path('v1/', include(router.urls)),
     path('v1/', include('djoser.urls')),
     path('v1/', include('djoser.urls.jwt'))
-    # /categories/
-    # /categories/{slug}/
-    # /genres/
-    # /genres/{slug}/
-    # /titles/{titles_id}/
-    # /titles/{title_id}/reviews/
-    # /titles/{title_id}/reviews/{review_id}/
-    # /titles/{title_id}/reviews/{review_id}/comments/
-    # /titles/{title_id}/reviews/{review_id}/comments/{comment_id}/
+
 ]
+# /categories/
+# /categories/{slug}/
+# /genres/
+# /genres/{slug}/
+# /titles/{titles_id}/
+# /titles/{title_id}/reviews/
+# /titles/{title_id}/reviews/{review_id}/
+# /titles/{title_id}/reviews/{review_id}/comments/
+# /titles/{title_id}/reviews/{review_id}/comments/{comment_id}/
