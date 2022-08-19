@@ -2,6 +2,9 @@ from django.db import models
 
 
 class Categories(models.Model):
+    """Класс для представления списка категорий:
+    «Книги», «Фильмы», «Музыка». Может быть расширен администратором.
+    """
     name = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
 
@@ -10,6 +13,9 @@ class Categories(models.Model):
 
 
 class Genres(models.Model):
+    """Класс для представления жанра из списка предустановленных.
+    Новые жанры может создавать только администратор.
+    """
     name = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
 
@@ -18,6 +24,7 @@ class Genres(models.Model):
 
 
 class Titles(models.Model):
+    """Класс для представления произведений."""
     category = models.ForeignKey(
         Categories, on_delete=models.CASCADE,
         related_name='category', blank=True, null=True)
@@ -27,8 +34,14 @@ class Titles(models.Model):
     year = models.IntegerField()
     description = models.TextField()
 
+    def __str__(self):
+        return self.name
+
 
 class Review(models.Model):
+    """Класс для представления отзывов и
+    оценок на произведения titles от пользователей.
+    """
     slug = models.SlugField(max_length=50)
     text = models.TextField()
     score = models.IntegerField()
@@ -38,9 +51,22 @@ class Review(models.Model):
         related_name='title', blank=True, null=True)
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'])
+        ]
+
+    def __str__(self):
+        return self.text
+
 
 class Comments(models.Model):
+    """Класс для представления комментариев к отзывам."""
     slug = models.SlugField(max_length=50)
     text = models.TextField()
     #author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='review')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+
+    def __str__(self):
+        return self.text
