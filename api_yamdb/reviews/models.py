@@ -1,4 +1,8 @@
+from django.contrib.auth import get_user_model
+
 from django.db import models
+
+User = get_user_model()
 
 
 class Categories(models.Model):
@@ -29,7 +33,7 @@ class Titles(models.Model):
         Categories, on_delete=models.CASCADE,
         related_name='category', blank=True, null=True)
     genre = models.ManyToManyField(Genres, blank=True,
-                                   related_name='title')
+        related_name='title')
     name = models.CharField(max_length=200)
     year = models.IntegerField()
     description = models.TextField()
@@ -51,12 +55,6 @@ class Review(models.Model):
         related_name='title', blank=True, null=True)
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['author', 'title'])
-        ]
-
     def __str__(self):
         return self.text
 
@@ -65,7 +63,7 @@ class Comments(models.Model):
     """Класс для представления комментариев к отзывам."""
     slug = models.SlugField(max_length=50)
     text = models.TextField()
-    #author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='review')
+    #author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     def __str__(self):
