@@ -119,7 +119,6 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Класс для представления комментариев к отзывам."""
-    slug = models.SlugField(max_length=50)
     text = models.TextField()
     author = models.ForeignKey(
         User,
