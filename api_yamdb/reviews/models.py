@@ -1,26 +1,29 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .utils import generate_confirmation_code
+from .validators import validate_year
 
 
 class User(AbstractUser):
 
-    admin = 'admin'
-    moderator = 'moderator'
-    user = 'user'
-    CHOICES = (
-        (admin, 'admin'),
-        (moderator, 'moderator'),
-        (user, 'user'),
-    )
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
+    ROLES = [
+        (ADMIN, 'Administrator'),
+        (MODERATOR, 'Moderator'),
+        (USER, 'User'),
+    ]
 
     bio = models.TextField(blank=True, verbose_name='Информация о себе')
     role = models.CharField(
         max_length=50,
         null=True,
-        choices=CHOICES,
-        verbose_name='Роль'
+        choices=ROLES,
+        verbose_name='Роль',
+        default=USER
     )
     username = models.CharField(
         max_length=150,
@@ -43,6 +46,14 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
 
 
 class Category(models.Model):
@@ -80,7 +91,10 @@ class Title(models.Model):
         blank=True,
         related_name='titles')
     name = models.CharField(max_length=200)
-    year = models.IntegerField()
+    year = models.IntegerField(
+        verbose_name='Дата выхода',
+        validators=[validate_year]
+    )
     description = models.TextField()
 
     def __str__(self):
@@ -92,7 +106,13 @@ class Review(models.Model):
     оценок на произведения titles от пользователей.
     """
     text = models.TextField()
-    score = models.IntegerField()
+    score = models.PositiveSmallIntegerField(
+        verbose_name='Реуйтинг',
+        validators=[
+            MinValueValidator(1, 'Диапазон значений от 1 до 10'),
+            MaxValueValidator(10, 'Диапазон значений от 1 до 10')
+        ]
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
