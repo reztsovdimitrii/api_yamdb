@@ -82,7 +82,7 @@ class Title(models.Model):
     """Класс для представления произведений."""
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='titles',
         blank=True,
         null=True)
