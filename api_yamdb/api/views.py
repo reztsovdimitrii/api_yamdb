@@ -10,7 +10,7 @@ from .serializers import (CategorySerializer, GenreSerializer,
                           RegisterUserSerializer, TokenSerialiser,
                           UserSerializer)
 from .mixins import ListCreateDestroyViewSet
-from .permissions import IsAdminOrReadOnly, IsAdminOrSuperUser
+from .permissions import IsAdminOrReadOnly, IsAdmin, IsModerator, IsSuperuser
 
 from reviews.models import Category, Genre, Title, Review, Comment, User
 from reviews.utils import send_mail_to_user
@@ -103,5 +103,28 @@ def get_jwt_token(request):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdminOrSuperUser, )
-    
+    permission_classes = (permissions.IsAuthenticated, IsAdmin | IsSuperuser,)
+
+    @action(
+        methods=[
+            'get',
+            'patch'
+        ],
+        detail=False,
+        url_path='me',
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def get_or_update_self(self, request):
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'PATCH':
+            serializer = self.get_serializer(
+                request.user,
+                data=request.data,
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
