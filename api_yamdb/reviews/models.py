@@ -17,7 +17,7 @@ class User(AbstractUser):
         (USER, 'User'),
     ]
 
-    bio = models.TextField(blank=True, verbose_name='Информация о себе')
+    bio = models.TextField(null=True, blank=True, verbose_name='Информация о себе')
     role = models.CharField(
         max_length=50,
         null=True,
@@ -89,7 +89,9 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre,
         blank=True,
-        related_name='titles')
+        related_name='titles',
+        db_index=True
+    )
     name = models.CharField(max_length=200)
     year = models.IntegerField(
         verbose_name='Дата выхода',
@@ -107,7 +109,7 @@ class Review(models.Model):
     """
     text = models.TextField()
     score = models.PositiveSmallIntegerField(
-        verbose_name='Реуйтинг',
+        verbose_name='Рейтинг',
         validators=[
             MinValueValidator(1, 'Диапазон значений от 1 до 10'),
             MaxValueValidator(10, 'Диапазон значений от 1 до 10')

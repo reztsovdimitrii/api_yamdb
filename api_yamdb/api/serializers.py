@@ -9,6 +9,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Category
+        lookup_field = 'slug'
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -16,6 +17,7 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Genre
+        lookup_field = 'slug'
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -25,7 +27,8 @@ class TitleSerializer(serializers.ModelSerializer):
     )
     genre = serializers.SlugRelatedField(
         slug_field='slug',
-        queryset=Genre.objects.all()
+        queryset=Genre.objects.all(),
+        many=True
     )
 
     class Meta:
@@ -40,7 +43,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
     author = serializers.SlugRelatedField(
         slug_field='username',
-        read_only=True
+        read_only=True,
+        many=False
     )
 
     class Meta:
