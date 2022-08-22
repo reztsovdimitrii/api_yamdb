@@ -10,7 +10,7 @@ from .serializers import (CategorySerializer, GenreSerializer,
                           RegisterUserSerializer, TokenSerialiser,
                           UserSerializer)
 from .mixins import ListCreateDestroyViewSet
-from .permissions import IsAdminOrReadOnly, IsAdmin, IsModerator, IsSuperuser
+from .permissions import IsAdminOrReadOnly, IsAdmin, IsModerator, IsSuperuser, IsAuthor
 
 from reviews.models import Category, Genre, Title, Review, Comment, User
 from reviews.utils import send_mail_to_user
@@ -19,7 +19,7 @@ from reviews.utils import send_mail_to_user
 class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    # permission_classes = AdminOrReadOnly
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -27,7 +27,7 @@ class CategoryViewSet(ListCreateDestroyViewSet):
 class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    # permission_classes = AdminOrReadOnly
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -35,14 +35,14 @@ class GenreViewSet(ListCreateDestroyViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    # permission_classes = AdminOrReadOnly
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
-    # filter_class = ??? да конечно
+    filterset_fields = ['category', 'genre', 'name']
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    # premission_classes = AuthorModeratorOrAdmin
+    permission_classes = [IsAdmin, IsModerator, IsAuthor]
 
     def get_queryset(self):
         pk = self.kwargs.get('title_id')
@@ -57,7 +57,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    # permission_classes = AuthorModeratorOrAdmin
+    permission_classes = [IsAdmin, IsModerator, IsAuthor]
 
     def get_queryset(self):
         pk = self.kwargs.get('review_id')

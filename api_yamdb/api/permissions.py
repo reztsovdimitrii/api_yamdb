@@ -43,3 +43,8 @@ class IsSuperuser(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return request.user.is_authenticated and request.user.is_superuser
+
+
+class IsAuthor(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return request.method in SAFE_METHODS or obj.athor == request.user
