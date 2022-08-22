@@ -32,4 +32,4 @@ python manage.py runserver
 ### Авторы
     Дмитрий Резцов (Github - reztsovdimitrii)
     Лычагин Андрей (Github - Linnaip)
-	Семёнов Сергей (Github - bluesprogrammer-Python)
+	  Семёнов Сергей (Github - bluesprogrammer-Python)
