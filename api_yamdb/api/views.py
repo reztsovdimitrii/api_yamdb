@@ -8,20 +8,22 @@ from rest_framework_simplejwt.tokens import AccessToken
 from .serializers import (CategorySerializer, GenreSerializer,
                           TitleSerializer, ReviewSerializer, CommentSerializer,
                           RegisterUserSerializer, TokenSerialiser,
-                          UserSerializer)
+                          UserSerializer, UserEditSerialzer)
 from .mixins import ListCreateDestroyViewSet
-from .permissions import IsAdminOrReadOnly, IsAdmin, IsModerator, IsSuperuser, IsAuthor
+from .permissions import (IsAdminOrReadOnly, IsAdmin, IsModerator,
+                          IsSuperuser, IsAuthor)
 
-from reviews.models import Category, Genre, Title, Review, Comment, User
+from reviews.models import Category, Genre, Title, Review, User
 from reviews.utils import send_mail_to_user
 
 
 class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = "slug"
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
@@ -30,6 +32,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = "slug"
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -37,7 +40,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['category', 'genre', 'name']
+    filterset_fields = ['category', 'genre', 'name', 'year']
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -65,10 +68,14 @@ class CommentViewSet(viewsets.ModelViewSet):
         return review.comments.all()
 
     def perform_create(self, serializer):
-        title = self.kwargs.get('title_id')
-        review = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, title=title, pk=review)
-        serializer.save(author=self.request.user, title=title, pk=review)
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, title=title_id, id=review_id)
+        serializer.save(
+            author=self.request.user,
+            title=title_id,
+            review=review
+        )
 
 
 @api_view(["POST"])
@@ -113,7 +120,8 @@ class UserViewSet(viewsets.ModelViewSet):
         ],
         detail=False,
         url_path='me',
-        permission_classes=(permissions.IsAuthenticated,)
+        permission_classes=(permissions.IsAuthenticated,),
+        serializer_class=UserEditSerialzer
     )
     def get_or_update_self(self, request):
         if request.method == 'GET':

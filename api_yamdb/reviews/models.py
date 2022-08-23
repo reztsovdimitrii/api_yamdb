@@ -7,6 +7,9 @@ from .validators import validate_year
 
 
 class User(AbstractUser):
+    """
+    Класс для предоставления данных о пользователе.
+    """
 
     ADMIN = 'admin'
     MODERATOR = 'moderator'
@@ -17,7 +20,11 @@ class User(AbstractUser):
         (USER, 'User'),
     ]
 
-    bio = models.TextField(null=True, blank=True, verbose_name='Информация о себе')
+    bio = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name='Информация о себе'
+    )
     role = models.CharField(
         max_length=50,
         null=True,
@@ -84,7 +91,6 @@ class Title(models.Model):
         Category,
         on_delete=models.SET_NULL,
         related_name='titles',
-        blank=True,
         null=True)
     genre = models.ManyToManyField(
         Genre,
