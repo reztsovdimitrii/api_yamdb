@@ -19,8 +19,8 @@ def send_mail_to_user(email, confirmation_code):
 
 def generate_confirmation_code():
     generate_pass = ''.join(
-            random.choice(
-                string.ascii_uppercase + string.digits,
-            ) for n in range(SIZE_CODE)
+        random.choice(
+            string.ascii_uppercase + string.digits,
+        ) for n in range(SIZE_CODE)
     )
     return generate_pass

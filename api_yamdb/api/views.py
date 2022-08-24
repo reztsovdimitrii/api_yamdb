@@ -14,7 +14,7 @@ from .permissions import (IsAdminOrReadOnly, IsAdmin, IsModerator,
                           IsSuperuser, IsAuthor)
 from .filters import TitleFilter
 
-from reviews.models import Category, Genre, Review, Title,  User
+from reviews.models import Category, Genre, Review, Title, User
 from reviews.utils import send_mail_to_user
 
 
@@ -105,7 +105,8 @@ def get_jwt_token(request):
         User,
         username=serializer.validated_data['username']
     )
-    if user.confirmation_code == serializer.validated_data['confirmation_code']:
+    confirmation_code = user.confirmation_code
+    if confirmation_code == serializer.validated_data['confirmation_code']:
         token = AccessToken.for_user(user)
         return Response({"token": str(token)}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
