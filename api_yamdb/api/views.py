@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import viewsets, filters, status, permissions
 
 from .serializers import (CategorySerializer, CommentSerializer,
@@ -107,8 +107,11 @@ def get_jwt_token(request):
     )
     confirmation_code = user.confirmation_code
     if confirmation_code == serializer.validated_data['confirmation_code']:
-        token = AccessToken.for_user(user)
-        return Response({"token": str(token)}, status=status.HTTP_200_OK)
+        token = RefreshToken.for_user(user)
+        return Response(
+            {"token": str(token.access_token)},
+            status=status.HTTP_200_OK
+        )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
