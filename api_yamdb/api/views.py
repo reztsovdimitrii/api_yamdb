@@ -1,20 +1,20 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters, status, permissions
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework import viewsets, filters, status, permissions
 
-from .serializers import (CategorySerializer, GenreSerializer,
-                          TitleSerializer, ReviewSerializer, CommentSerializer,
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
                           RegisterUserSerializer, TokenSerialiser,
-                          UserSerializer, UserEditSerialzer)
+                          TitleSerializer, UserSerializer, UserEditSerialzer)
 from .mixins import ListCreateDestroyViewSet
 from .permissions import (IsAdminOrReadOnly, IsAdmin, IsModerator,
                           IsSuperuser, IsAuthor)
 from .filters import TitleFilter
 
-from reviews.models import Category, Genre, Title, Review, User
+from reviews.models import Category, Genre, Review, Title,  User
 from reviews.utils import send_mail_to_user
 
 
