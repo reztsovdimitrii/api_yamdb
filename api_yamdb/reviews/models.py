@@ -103,7 +103,11 @@ class Title(models.Model):
         verbose_name='Дата выхода',
         validators=[validate_year]
     )
-    description = models.TextField()
+    description = models.TextField(
+        verbose_name='Описание',
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return self.name
@@ -129,9 +133,7 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews',
-        blank=True,
-        null=True
+        related_name='reviews'
     )
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 

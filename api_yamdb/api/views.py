@@ -1,4 +1,3 @@
-from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters, status, permissions
 from django.shortcuts import get_object_or_404
@@ -13,6 +12,7 @@ from .serializers import (CategorySerializer, GenreSerializer,
 from .mixins import ListCreateDestroyViewSet
 from .permissions import (IsAdminOrReadOnly, IsAdmin, IsModerator,
                           IsSuperuser, IsAuthor)
+from .filters import TitleFilter
 
 from reviews.models import Category, Genre, Title, Review, User
 from reviews.utils import send_mail_to_user
@@ -37,33 +37,32 @@ class GenreViewSet(ListCreateDestroyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    # queryset = Title.objects.all()
-    
-    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['category', 'genre', 'name', 'year']
+    filterset_class = TitleFilter
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAdminOrReadOnly, IsAdmin | IsModerator | IsAuthor]
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdmin | IsModerator | IsAuthor,
+    )
 
     def get_queryset(self):
-        pk = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=pk)
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        pk = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=pk)
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAdminOrReadOnly, IsAdmin | IsModerator | IsAuthor]
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsAdmin | IsModerator | IsAuthor | IsSuperuser,)
 
     def get_queryset(self):
         pk = self.kwargs.get('review_id')
@@ -76,7 +75,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         review = get_object_or_404(Review, title=title_id, id=review_id)
         serializer.save(
             author=self.request.user,
-            title=title_id,
             review=review
         )
 
