@@ -62,7 +62,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsAdmin | IsModerator | IsAuthor | IsSuperuser,)
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdmin | IsModerator | IsAuthor | IsSuperuser,
+    )
 
     def get_queryset(self):
         pk = self.kwargs.get('review_id')
