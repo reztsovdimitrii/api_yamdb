@@ -61,6 +61,12 @@ class User(AbstractUser):
     @property
     def is_moderator(self):
         return self.role == self.MODERATOR
+    
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(fields=['username', 'email'],
+                                    name='uniq_signup'),
+        )
 
 
 class Category(models.Model):

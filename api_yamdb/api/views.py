@@ -1,5 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -8,7 +9,8 @@ from rest_framework import viewsets, filters, status, permissions
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           RegisterUserSerializer, TokenSerialiser,
-                          TitleSerializer, UserSerializer, UserEditSerialzer)
+                          TitleReadSerializer, TitleWriteSerializer,
+                          UserSerializer, UserEditSerialzer)
 from .mixins import ListCreateDestroyViewSet
 from .permissions import (IsAdminOrReadOnly, IsAdmin, IsModerator,
                           IsSuperuser, IsAuthor)
@@ -24,7 +26,7 @@ class CategoryViewSet(ListCreateDestroyViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    lookup_field = "slug"
+    lookup_field = 'slug'
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
@@ -33,15 +35,20 @@ class GenreViewSet(ListCreateDestroyViewSet):
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    lookup_field = "slug"
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    queryset = Title.objects.annotate(rating=Avg('reviews__score')).all()
+    serializer_class = TitleWriteSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -87,12 +94,16 @@ class CommentViewSet(viewsets.ModelViewSet):
 def register(request):
     serializer = RegisterUserSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
-    user = get_object_or_404(
-        User,
-        username=serializer.validated_data['username']
-    )
-    send_mail_to_user(user.email, user.confirmation_code)
+    email = serializer.validated_data.get('email')
+    username = serializer.validated_data.get('username')
+    obj, created = User.objects.get_or_create(username=username, email=email)
+    if created is False:
+        send_mail_to_user(obj.email, obj.confirmation_code)
+        return Response(
+            'Отправлен повторный confirmation_code',
+            status=status.HTTP_200_OK
+        )
+    send_mail_to_user(obj.email, obj.confirmation_code)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -116,7 +127,7 @@ def get_jwt_token(request):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    lookup_field = "username"
+    lookup_field = 'username'
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated, IsAdmin | IsSuperuser,)

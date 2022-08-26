@@ -1,29 +1,30 @@
-from django.db.models import Avg
+import datetime
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import ValidationError
 
-from reviews.models import Category, Genre, Title, Review, Comment, User
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ("name", "slug")
+        fields = ('name', 'slug')
         model = Category
-        lookup_field = "slug"
+        lookup_field = 'slug'
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ("name", "slug")
+        fields = ('name', 'slug')
         model = Genre
-        lookup_field = "slug"
+        lookup_field = 'slug'
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleReadSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all()
@@ -41,13 +42,39 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
 
     def get_rating(self, obj):
-        return obj.reviews.all().aggregate(Avg('score'))['score__avg']
+        return obj.rating
 
     def to_representation(self, instance):
-        data = super(TitleSerializer, self).to_representation(instance)
+        data = super(TitleReadSerializer, self).to_representation(instance)
         data['category'] = CategorySerializer(instance.category).data
         data['genre'] = GenreSerializer(instance.genre.all(), many=True).data
         return data
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True, max_length=256)
+    year = serializers.IntegerField(required=True)
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True
+    )
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year',
+                  'description', 'genre', 'category')
+
+    def validate_year(self, value):
+        current_year = datetime.datetime.now().year
+        if value > current_year:
+            raise serializers.ValidationError(
+                'Это из будущего!')
+        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -95,31 +122,43 @@ class UserSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ("username", "email", "first_name",
-                  "last_name", "bio", "role")
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
         model = User
 
 
 class UserEditSerialzer(serializers.ModelSerializer):
     class Meta:
-        fields = ("username", "email", "first_name",
-                  "last_name", "bio", "role")
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
         model = User
         read_only_fields = ('role',)
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        required=True
     )
     email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        required=True
     )
 
-    def validate_username(self, value):
-        if value.lower() == 'me':
-            raise serializers.ValidationError("Username 'me' is not valid")
-        return value
+    def validate(self, data):
+        username = data.get('username')
+        email = data.get('email')
+        is_username = User.objects.filter(username=username).exists()
+        is_email = User.objects.filter(email=email).exists()
+        if is_username and not is_email:
+            raise ValidationError(
+                f'Такой пользователь {username} уже существует'
+            )
+        if is_email and not is_username:
+            raise ValidationError(
+                f'Пользователь с таким email {email} уже существует'
+            )
+        if username.lower() == 'me':
+            raise serializers.ValidationError('Данный юзернейм недоступен')
+        return data
 
     class Meta:
         fields = ('username', 'email')

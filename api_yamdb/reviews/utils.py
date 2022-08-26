@@ -2,8 +2,7 @@ import random
 import string
 
 from django.core.mail import send_mail
-
-SIZE_CODE = 6
+from django.conf import settings
 
 
 def send_mail_to_user(email, confirmation_code):
@@ -21,6 +20,6 @@ def generate_confirmation_code():
     generate_pass = ''.join(
         random.choice(
             string.ascii_uppercase + string.digits,
-        ) for n in range(SIZE_CODE)
+        ) for n in range(settings.SIZE_CODE)
     )
     return generate_pass
