@@ -40,6 +40,8 @@ class TitleReadSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category')
         model = Title
+        read_only_fields = ('id', 'name', 'year', 'rating',
+                            'description', 'genre', 'category')
 
     def get_rating(self, obj):
         return obj.rating
