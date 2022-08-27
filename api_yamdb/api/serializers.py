@@ -25,15 +25,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Category.objects.all()
-    )
-    genre = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Genre.objects.all(),
-        many=True
-    )
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
     rating = serializers.SerializerMethodField()
 
     class Meta:
@@ -45,12 +38,6 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         return obj.rating
-
-    def to_representation(self, instance):
-        data = super(TitleReadSerializer, self).to_representation(instance)
-        data['category'] = CategorySerializer(instance.category).data
-        data['genre'] = GenreSerializer(instance.genre.all(), many=True).data
-        return data
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
